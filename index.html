@@ -5,592 +5,526 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Alpha Bac - Plateforme éducative</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            moodle: { blue: '#007bff', dark: '#313a46', light: '#f5f6f8' }
-          }
-        }
-      }
-    };
-  </script>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    body { margin: 0; font-family: 'Segoe UI', system-ui; background-color: #f5f6f8; }
-    .sidebar-bg { background-color: #313a46; color: white; }
+    body { font-family: system-ui; background-color: #f8fafc; margin: 0; }
     .icon { width: 1.25rem; height: 1.25rem; stroke: currentColor; stroke-width: 2; fill: none; }
   </style>
 </head>
 <body>
   <div id="root"></div>
 
-  <script type="text/babel">
+  <script>
     const { useState, useEffect } = React;
 
     const ADMIN_PASSWORD = "admin123";
 
-    // ————— Icônes SVG (rapides, sans réseau) —————
-    const IconBook = () => <svg className="icon" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H19a1 1 0 011 1v18a1 1 0 01-1 1H6.5a2.5 2.5 0 010-5H20" /></svg>;
-    const IconFile = () => <svg className="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" /><path d="M14 2v6h6" /></svg>;
-    const IconUsers = () => <svg className="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><circle cx="17" cy="7" r="4" /></svg>;
-    const IconGraduation = () => <svg className="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><path d="M12 11L8 7l4-4 4 4-4 4z" /></svg>;
-    const IconPlay = () => <svg className="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" /></svg>;
-    const IconClock = () => <svg className="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
-    const IconAward = () => <svg className="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" /></svg>;
-    const IconCheck = () => <svg className="icon text-green-600" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>;
-    const IconX = () => <svg className="icon text-red-600" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>;
-    const IconShield = () => <svg className="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>;
-    const IconKey = () => <svg className="icon" viewBox="0 0 24 24"><path d="M19 11H5a2 2 0 00-2 2v6a2 2 0 002 2h14a2 2 0 002-2v-6a2 2 0 00-2-2z" /><path d="M10 16v-3a1 1 0 011-1h2a1 1 0 011 1v3" /><circle cx="12" cy="8" r="2" /></svg>;
-    const IconMenu = () => <svg className="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>;
-    const IconLogout = () => <svg className="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>;
-    const IconPlus = () => <svg className="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>;
-    const IconTrash = () => <svg className="icon text-red-600" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>;
-
-    const App = () => {
-      const [currentView, setCurrentView] = useState('login');
-      const [userRole, setUserRole] = useState(null);
-      const [sidebarOpen, setSidebarOpen] = useState(false);
+    function App() {
+      const [view, setView] = useState('login'); // 'login', 'student', 'teacher', 'take-quiz'
       const [password, setPassword] = useState('');
       const [error, setError] = useState('');
+      const [currentQuiz, setCurrentQuiz] = useState(null);
+      const [answers, setAnswers] = useState({});
+      const [results, setResults] = useState(null);
+      const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
 
-      // ✅ Ajout de localStorage pour persister les devoirs
       const initialAssignments = JSON.parse(localStorage.getItem('assignments')) || [
         {
           id: 1,
-          title: 'Quiz d\'algèbre',
-          subject: 'Mathématiques',
+          title: "Quiz d'algèbre",
+          subject: "Mathématiques",
           questions: [
-            { id: 1, question: 'Résolvez: 2x + 5 = 15', correctAnswer: '5', type: 'text' },
-            { id: 2, question: '√64 = ?', correctAnswer: '8', type: 'text' }
+            { id: 1, text: "Résolvez : 2x + 5 = 15", answer: "5", type: "text" },
+            { id: 2, text: "Vrai ou Faux : √64 = 8", answer: "true", type: "boolean" }
           ],
-          isGraded: false,
-          createdAt: '2025-11-25'
+          graded: false,
+          date: "2025-11-25"
         }
       ];
 
       const [assignments, setAssignments] = useState(initialAssignments);
-      const [studentAnswers, setStudentAnswers] = useState({});
-      const [currentAssignment, setCurrentAssignment] = useState(null);
-      const [gradeResults, setGradeResults] = useState(null);
-      const [timeLeft, setTimeLeft] = useState(600);
-      const [showAddForm, setShowAddForm] = useState(false);
-      const [newAssignment, setNewAssignment] = useState({
-        title: '',
-        subject: '',
-        questions: [{ question: '', correctAnswer: '', type: 'text' }]
-      });
 
-      // Sauvegarder dans localStorage à chaque changement
+      // Sauvegarde dans localStorage
       useEffect(() => {
         localStorage.setItem('assignments', JSON.stringify(assignments));
       }, [assignments]);
 
-      // ————— FONCTIONS COMMUNES —————
-      const handleStudentLogin = () => {
-        setUserRole('student');
-        setCurrentView('dashboard');
+      // Chronomètre
+      useEffect(() => {
+        let timer;
+        if (view === 'take-quiz' && timeLeft > 0 && !results) {
+          timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+        }
+        return () => clearTimeout(timer);
+      }, [timeLeft, view, results]);
+
+      const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
       };
 
-      const handleTeacherLogin = () => {
+      // === AUTHENTIFICATION ===
+      const loginStudent = () => {
+        setView('student');
+      };
+
+      const loginTeacher = () => {
         if (password === ADMIN_PASSWORD) {
-          setUserRole('teacher');
-          setCurrentView('dashboard');
+          setView('teacher');
           setError('');
         } else {
           setError('Mot de passe incorrect');
         }
       };
 
-      const handleLogout = () => {
-        setCurrentView('login');
-        setUserRole(null);
-        setCurrentAssignment(null);
-        setGradeResults(null);
-        setStudentAnswers({});
-        setShowAddForm(false);
+      const logout = () => {
+        setView('login');
         setPassword('');
         setError('');
-      };
-
-      const startAssignment = (assignment) => {
-        setCurrentAssignment(assignment);
-        setStudentAnswers({});
-        setGradeResults(null);
+        setCurrentQuiz(null);
+        setAnswers({});
+        setResults(null);
         setTimeLeft(600);
       };
 
-      const handleAnswerChange = (questionId, value) => {
-        setStudentAnswers(prev => ({ ...prev, [questionId]: value }));
+      // === ÉLÈVE : PASSER UN DEVOIR ===
+      const startQuiz = (quiz) => {
+        setCurrentQuiz(quiz);
+        setAnswers({});
+        setResults(null);
+        setTimeLeft(600);
+        setView('take-quiz');
       };
 
-      const gradeAssignment = () => {
-        if (!currentAssignment) return;
-        const results = currentAssignment.questions.map(q => {
-          const userAns = (studentAnswers[q.id] || '').toString().toLowerCase().trim();
-          const correct = q.correctAnswer.toString().toLowerCase().trim();
-          return { questionId: q.id, isCorrect: userAns === correct, studentAnswer: studentAnswers[q.id] || '' };
+      const handleAnswerChange = (questionId, value) => {
+        setAnswers(prev => ({ ...prev, [questionId]: value }));
+      };
+
+      const submitQuiz = () => {
+        if (!currentQuiz) return;
+
+        const quizResults = currentQuiz.questions.map(q => {
+          const userAnswer = (answers[q.id] || '').toString().toLowerCase().trim();
+          const correctAnswer = q.answer.toString().toLowerCase().trim();
+          return {
+            questionId: q.id,
+            isCorrect: userAnswer === correctAnswer,
+            userAnswer: answers[q.id] || ''
+          };
         });
-        const score = results.filter(r => r.isCorrect).length;
-        const total = results.length;
+
+        const score = quizResults.filter(r => r.isCorrect).length;
+        const total = quizResults.length;
         const percentage = Math.round((score / total) * 100);
-        setGradeResults({ results, score, total, percentage });
-        // Marquer comme corrigé dans la liste
+
+        setResults({ quizResults, score, total, percentage });
+
+        // Marquer comme corrigé
         setAssignments(prev => prev.map(a =>
-          a.id === currentAssignment.id ? { ...a, isGraded: true } : a
+          a.id === currentQuiz.id ? { ...a, graded: true } : a
         ));
       };
 
-      useEffect(() => {
-        let timer;
-        if (currentAssignment && timeLeft > 0 && !gradeResults) {
-          timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-        }
-        return () => clearTimeout(timer);
-      }, [timeLeft, currentAssignment, gradeResults]);
+      // === ENSEIGNANT : FORMULAIRE ===
+      const [showForm, setShowForm] = useState(false);
+      const [formTitle, setFormTitle] = useState('');
+      const [formSubject, setFormSubject] = useState('');
+      const [questions, setQuestions] = useState([{ text: '', answer: '', type: 'text' }]);
 
-      const formatTime = (s) => {
-        const m = Math.floor(s / 60);
-        const sec = s % 60;
-        return `${m}:${sec.toString().padStart(2, '0')}`;
+      const resetForm = () => {
+        setFormTitle('');
+        setFormSubject('');
+        setQuestions([{ text: '', answer: '', type: 'text' }]);
       };
 
-      // ————— GESTION ENSEIGNANT —————
-      const addQuestionField = () => {
-        setNewAssignment(prev => ({
-          ...prev,
-          questions: [...prev.questions, { question: '', correctAnswer: '', type: 'text' }]
-        }));
+      const addQuestion = () => {
+        setQuestions([...questions, { text: '', answer: '', type: 'text' }]);
       };
 
-      const removeQuestionField = (index) => {
-        if (newAssignment.questions.length > 1) {
-          const updated = [...newAssignment.questions];
-          updated.splice(index, 1);
-          setNewAssignment({ ...newAssignment, questions: updated });
+      const removeQuestion = (index) => {
+        if (questions.length > 1) {
+          const newQ = [...questions];
+          newQ.splice(index, 1);
+          setQuestions(newQ);
         }
       };
 
-      const updateQuestionField = (index, field, value) => {
-        const updated = [...newAssignment.questions];
-        updated[index][field] = value;
-        setNewAssignment({ ...newAssignment, questions: updated });
+      const updateQuestionText = (index, value) => {
+        const newQ = [...questions];
+        newQ[index].text = value;
+        setQuestions(newQ);
       };
 
-      const handleCreateAssignment = () => {
-        if (!newAssignment.title.trim() || !newAssignment.subject.trim()) {
-          alert('Veuillez remplir le titre et la matière.');
+      const updateQuestionAnswer = (index, value) => {
+        const newQ = [...questions];
+        newQ[index].answer = value;
+        setQuestions(newQ);
+      };
+
+      const updateQuestionType = (index, value) => {
+        const newQ = [...questions];
+        newQ[index].type = value;
+        if (value === 'boolean' && newQ[index].answer !== 'true' && newQ[index].answer !== 'false') {
+          newQ[index].answer = 'true';
+        }
+        setQuestions(newQ);
+      };
+
+      const saveAssignment = () => {
+        if (!formTitle.trim() || !formSubject.trim()) {
+          alert('Titre et matière requis.');
           return;
         }
-        if (newAssignment.questions.some(q => !q.question.trim() || !q.correctAnswer.trim())) {
-          alert('Toutes les questions doivent avoir un énoncé et une réponse correcte.');
+        if (questions.some(q => !q.text.trim() || !q.answer.trim())) {
+          alert('Toutes les questions doivent être complétées.');
           return;
         }
-        const assignment = {
+
+        const newAssignment = {
           id: Date.now(),
-          title: newAssignment.title,
-          subject: newAssignment.subject,
-          questions: newAssignment.questions.map((q, i) => ({ ...q, id: i + 1 })),
-          isGraded: false,
-          createdAt: new Date().toISOString().split('T')[0]
+          title: formTitle,
+          subject: formSubject,
+          questions: questions.map((q, i) => ({
+            id: i + 1,
+            text: q.text,
+            answer: q.answer,
+            type: q.type
+          })),
+          graded: false,
+          date: new Date().toISOString().split('T')[0]
         };
-        setAssignments(prev => [...prev, assignment]);
-        setNewAssignment({ title: '', subject: '', questions: [{ question: '', correctAnswer: '', type: 'text' }] });
-        setShowAddForm(false);
+
+        setAssignments(prev => [...prev, newAssignment]);
+        setShowForm(false);
+        resetForm();
         alert('Devoir ajouté avec succès !');
       };
 
-      const handleDeleteAssignment = (id) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer ce devoir ?')) {
+      const deleteAssignment = (id) => {
+        if (confirm('Supprimer ce devoir ?')) {
           setAssignments(prev => prev.filter(a => a.id !== id));
         }
       };
 
-      // ————— VUE LOGIN —————
-      if (currentView === 'login') {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-8">
-              <div className="text-center mb-8">
-                <div className="mx-auto bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white">
-                  <IconBook />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-800">Alpha Bac</h1>
-                <p className="text-gray-600">Plateforme éducative</p>
-              </div>
-              <div className="space-y-5">
-                <button
-                  onClick={handleStudentLogin}
-                  className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 flex items-center justify-center space-x-2"
-                >
-                  <IconUsers /><span>Accès Étudiant</span>
-                </button>
-                <div className="border-t pt-5">
-                  <p className="text-center text-gray-700 mb-3">Accès Enseignant</p>
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"><IconKey /></span>
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        placeholder="Mot de passe"
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-                    <button
-                      onClick={handleTeacherLogin}
-                      className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 flex items-center justify-center space-x-2"
-                    >
-                      <IconShield /><span>Se connecter</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      // === VUES ===
+      if (view === 'login') {
+        return React.createElement('div', { className: 'min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4' },
+          React.createElement('div', { className: 'bg-white p-8 rounded-xl shadow-lg w-full max-w-md' },
+            React.createElement('div', { className: 'text-center mb-6' },
+              React.createElement('div', { className: 'mx-auto bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mb-3 text-white' },
+                React.createElement('svg', { className: 'icon', viewBox: '0 0 24 24' },
+                  React.createElement('path', { d: 'M4 19.5v-15A2.5 2.5 0 016.5 2H19a1 1 0 011 1v18a1 1 0 01-1 1H6.5a2.5 2.5 0 010-5H20' })
+                )
+              ),
+              React.createElement('h1', { className: 'text-2xl font-bold text-gray-800' }, 'Alpha Bac'),
+              React.createElement('p', { className: 'text-gray-600' }, 'Plateforme éducative')
+            ),
+            React.createElement('button', {
+              onClick: loginStudent,
+              className: 'w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 mb-4'
+            }, 'Accès Étudiant'),
+            React.createElement('div', { className: 'border-t pt-4' },
+              React.createElement('p', { className: 'text-center text-gray-700 mb-2' }, 'Accès Enseignant'),
+              React.createElement('input', {
+                type: 'password',
+                placeholder: 'Mot de passe',
+                value: password,
+                onChange: (e) => setPassword(e.target.value),
+                className: 'w-full p-3 border border-gray-300 rounded mb-2'
+              }),
+              error && React.createElement('p', { className: 'text-red-500 text-sm text-center mb-2' }, error),
+              React.createElement('button', {
+                onClick: loginTeacher,
+                className: 'w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700'
+              }, 'Se connecter')
+            )
+          )
         );
       }
 
-      // ————— VUE DEVOIR (ÉLÈVE) —————
-      if (currentAssignment) {
-        return (
-          <div className="min-h-screen bg-gray-100 p-4">
-            <div className="max-w-3xl mx-auto">
-              <div className="bg-white rounded-lg shadow p-6 mb-6">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-800">{currentAssignment.title}</h1>
-                    <p className="text-gray-600">{currentAssignment.subject}</p>
-                  </div>
-                  <div className="bg-red-100 text-red-800 px-3 py-1 rounded-full flex items-center space-x-1">
-                    <IconClock /><span>{formatTime(timeLeft)}</span>
-                  </div>
-                </div>
-
-                {!gradeResults ? (
-                  <div className="space-y-6">
-                    {currentAssignment.questions.map((q, i) => (
-                      <div key={q.id} className="p-4 border border-gray-200 rounded bg-gray-50">
-                        <p className="font-medium mb-3"><span className="text-blue-600 font-bold">{i + 1}.</span> {q.question}</p>
-                        {q.type === 'boolean' ? (
-                          <div className="space-y-2">
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                              <input
-                                type="radio"
-                                name={`q${q.id}`}
-                                value="true"
-                                checked={studentAnswers[q.id] === 'true'}
-                                onChange={e => handleAnswerChange(q.id, e.target.value)}
-                                className="w-4 h-4 text-blue-600"
-                              />
-                              <span>Vrai</span>
-                            </label>
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                              <input
-                                type="radio"
-                                name={`q${q.id}`}
-                                value="false"
-                                checked={studentAnswers[q.id] === 'false'}
-                                onChange={e => handleAnswerChange(q.id, e.target.value)}
-                                className="w-4 h-4 text-blue-600"
-                              />
-                              <span>Faux</span>
-                            </label>
-                          </div>
-                        ) : (
-                          <input
-                            type="text"
-                            value={studentAnswers[q.id] || ''}
-                            onChange={e => handleAnswerChange(q.id, e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                            placeholder="Votre réponse..."
-                          />
-                        )}
-                      </div>
-                    ))}
-                    <div className="text-center mt-6">
-                      <button
-                        onClick={gradeAssignment}
-                        disabled={timeLeft <= 0}
-                        className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        Soumettre et Corriger
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="inline-block bg-green-100 rounded-full p-4 mb-6">
-                      <IconAward className="text-green-600 w-12 h-12 mx-auto" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-2">Résultats</h2>
-                    <p className="text-4xl font-bold text-green-600 mb-2">{gradeResults.score} / {gradeResults.total}</p>
-                    <p className="text-xl text-gray-600">{gradeResults.percentage}% de réussite</p>
-
-                    <div className="mt-8 space-y-4 text-left">
-                      {gradeResults.results.map(r => {
-                        const q = currentAssignment.questions.find(x => x.id === r.questionId);
-                        return (
-                          <div key={r.questionId} className="flex items-start space-x-3 p-3 bg-white border rounded">
-                            {r.isCorrect ? <IconCheck /> : <IconX />}
-                            <div>
-                              <p className="font-medium">{q.question}</p>
-                              <p className="text-gray-600">Votre réponse: <span className="font-semibold">{r.studentAnswer || '—'}</span></p>
-                              {!r.isCorrect && <p className="text-red-600">Bonne réponse: {q.correctAnswer}</p>}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      onClick={() => setCurrentAssignment(null)}
-                      className="mt-8 bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700"
-                    >
-                      Retour
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+      // === ÉLÈVE : LISTE DES DEVOIRS ===
+      if (view === 'student') {
+        return React.createElement('div', { className: 'min-h-screen bg-gray-100 p-4' },
+          React.createElement('div', { className: 'max-w-6xl mx-auto' },
+            React.createElement('div', { className: 'flex justify-between items-center mb-6' },
+              React.createElement('h1', { className: 'text-2xl font-bold text-gray-800' }, 'Alpha Bac - Espace Élève'),
+              React.createElement('button', {
+                onClick: logout,
+                className: 'text-red-600 hover:underline flex items-center'
+              }, 'Déconnexion')
+            ),
+            assignments.length === 0
+              ? React.createElement('p', { className: 'text-gray-600' }, 'Aucun devoir pour le moment.')
+              : React.createElement('div', { className: 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' },
+                  assignments.map(quiz =>
+                    React.createElement('div', { key: quiz.id, className: 'bg-white rounded-lg shadow p-5' },
+                      React.createElement('h3', { className: 'font-bold text-lg text-gray-800 mb-2' }, quiz.title),
+                      React.createElement('p', { className: 'text-gray-600 mb-1' }, quiz.subject),
+                      React.createElement('p', { className: 'text-sm text-gray-500 mb-4' }, quiz.questions.length + ' questions'),
+                      React.createElement('button', {
+                        onClick: () => startQuiz(quiz),
+                        className: 'w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700'
+                      }, 'Commencer le devoir')
+                    )
+                  )
+                )
+          )
         );
       }
 
-      // ————— TABLEAU DE BORD —————
-      const Sidebar = () => (
-        <div className={`fixed inset-y-0 left-0 z-30 w-64 sidebar-bg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out`}>
-          <div className="p-5 border-b border-gray-700">
-            <h2 className="text-xl font-bold flex items-center space-x-2">
-              <IconBook /><span>Alpha Bac</span>
-            </h2>
-          </div>
-          <nav className="mt-6 px-4">
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => { setCurrentView('dashboard'); setSidebarOpen(false); }}
-                  className="w-full text-left px-4 py-2 rounded hover:bg-gray-700 flex items-center space-x-3"
-                >
-                  <IconGraduation /><span>Tableau de bord</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => { setCurrentView('assignments'); setSidebarOpen(false); }}
-                  className="w-full text-left px-4 py-2 rounded hover:bg-gray-700 flex items-center space-x-3"
-                >
-                  <IconFile /><span>{userRole === 'teacher' ? 'Gérer les devoirs' : 'Mes devoirs'}</span>
-                </button>
-              </li>
-            </ul>
-          </nav>
-          <div className="absolute bottom-0 w-full p-4 border-t border-gray-700">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center space-x-2 text-red-300 hover:text-red-100 py-2"
-            >
-              <IconLogout /><span>Déconnexion</span>
-            </button>
-          </div>
-        </div>
-      );
+      // === ÉLÈVE : PASSER LE DEVOIR ===
+      if (view === 'take-quiz') {
+        if (!currentQuiz) return React.createElement('p', null, 'Erreur : devoir non trouvé.');
 
-      const Header = () => (
-        <header className="bg-white shadow-sm h-16 flex items-center justify-between px-4 md:px-6">
-          <button onClick={() => setSidebarOpen(true)} className="md:hidden text-gray-600"><IconMenu /></button>
-          <div className="flex items-center space-x-3">
-            <div className={`w-3 h-3 rounded-full ${userRole === 'teacher' ? 'bg-red-500' : 'bg-green-500'}`}></div>
-            <span className="font-medium text-gray-800 capitalize">
-              {userRole === 'teacher' ? 'Enseignant' : 'Étudiant'}
-            </span>
-          </div>
-        </header>
-      );
+        return React.createElement('div', { className: 'min-h-screen bg-gray-100 p-4' },
+          React.createElement('div', { className: 'max-w-4xl mx-auto' },
+            React.createElement('div', { className: 'bg-white rounded-lg shadow p-6 mb-6' },
+              React.createElement('div', { className: 'flex justify-between items-start mb-6' },
+                React.createElement('div', null,
+                  React.createElement('h1', { className: 'text-2xl font-bold text-gray-800' }, currentQuiz.title),
+                  React.createElement('p', { className: 'text-gray-600' }, currentQuiz.subject)
+                ),
+                React.createElement('div', { className: 'bg-red-100 text-red-800 px-3 py-1 rounded-full flex items-center' },
+                  React.createElement('svg', { className: 'icon mr-1', viewBox: '0 0 24 24' },
+                    React.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+                    React.createElement('polyline', { points: '12 6 12 12 16 14' })
+                  ),
+                  React.createElement('span', null, formatTime(timeLeft))
+                )
+              ),
 
-      const Layout = ({ children }) => (
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <div className="flex flex-col flex-1 md:ml-64">
-            <Header />
-            <main className="flex-1 p-4 md:p-6">{children}</main>
-          </div>
-          {sidebarOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" onClick={() => setSidebarOpen(false)}></div>}
-        </div>
-      );
+              !results ? (
+                React.createElement(React.Fragment, null,
+                  currentQuiz.questions.map((q, idx) =>
+                    React.createElement('div', { key: q.id, className: 'mb-6 p-4 border border-gray-200 rounded bg-gray-50' },
+                      React.createElement('p', { className: 'font-medium mb-3' },
+                        React.createElement('span', { className: 'text-blue-600 font-bold mr-2' }, idx + 1 + '.'),
+                        q.text
+                      ),
+                      q.type === 'boolean'
+                        ? React.createElement('div', { className: 'space-y-2' },
+                            React.createElement('label', { className: 'flex items-center space-x-2 cursor-pointer' },
+                              React.createElement('input', {
+                                type: 'radio',
+                                name: 'q' + q.id,
+                                value: 'true',
+                                checked: answers[q.id] === 'true',
+                                onChange: (e) => handleAnswerChange(q.id, e.target.value),
+                                className: 'text-blue-600'
+                              }),
+                              React.createElement('span', null, 'Vrai')
+                            ),
+                            React.createElement('label', { className: 'flex items-center space-x-2 cursor-pointer' },
+                              React.createElement('input', {
+                                type: 'radio',
+                                name: 'q' + q.id,
+                                value: 'false',
+                                checked: answers[q.id] === 'false',
+                                onChange: (e) => handleAnswerChange(q.id, e.target.value),
+                                className: 'text-blue-600'
+                              }),
+                              React.createElement('span', null, 'Faux')
+                            )
+                          )
+                        : React.createElement('input', {
+                            type: 'text',
+                            value: answers[q.id] || '',
+                            onChange: (e) => handleAnswerChange(q.id, e.target.value),
+                            placeholder: 'Votre réponse...',
+                            className: 'w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500'
+                          })
+                    )
+                  ),
+                  React.createElement('div', { className: 'text-center mt-6' },
+                    React.createElement('button', {
+                      onClick: submitQuiz,
+                      disabled: timeLeft <= 0,
+                      className: 'bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50'
+                    }, 'Soumettre et Corriger')
+                  )
+                )
+              ) : (
+                React.createElement('div', { className: 'text-center py-8' },
+                  React.createElement('div', { className: 'inline-block bg-green-100 rounded-full p-4 mb-6' },
+                    React.createElement('svg', { className: 'icon text-green-600 w-12 h-12 mx-auto', viewBox: '0 0 24 24' },
+                      React.createElement('circle', { cx: '12', cy: '8', r: '7' }),
+                      React.createElement('polyline', { points: '8.21 13.89 7 23 12 20 17 23 15.79 13.88' })
+                    )
+                  ),
+                  React.createElement('h2', { className: 'text-2xl font-bold mb-2' }, 'Résultats'),
+                  React.createElement('p', { className: 'text-4xl font-bold text-green-600 mb-2' }, results.score + ' / ' + results.total),
+                  React.createElement('p', { className: 'text-gray-700 mb-8' }, results.percentage + '% de réussite'),
 
-      if (currentView === 'dashboard') {
-        return (
-          <Layout>
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
-              {userRole === 'teacher' ? 'Enseignant' : 'Étudiant'} - Alpha Bac
-            </h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded shadow">
-                <IconFile className="text-blue-600 mb-2" />
-                <h3 className="font-bold text-gray-800">{assignments.length}</h3>
-                <p className="text-gray-600">Devoirs</p>
-              </div>
-            </div>
-          </Layout>
+                  results.quizResults.map(r => {
+                    const q = currentQuiz.questions.find(x => x.id === r.questionId);
+                    return React.createElement('div', {
+                      key: r.questionId,
+                      className: 'flex items-start space-x-3 p-3 bg-white border rounded mb-3'
+                    },
+                      r.isCorrect
+                        ? React.createElement('svg', { className: 'icon text-green-600 mt-0.5', viewBox: '0 0 24 24' },
+                            React.createElement('polyline', { points: '20 6 9 17 4 12' })
+                          )
+                        : React.createElement('svg', { className: 'icon text-red-600 mt-0.5', viewBox: '0 0 24 24' },
+                            React.createElement('line', { x1: '18', y1: '6', x2: '6', y2: '18' }),
+                            React.createElement('line', { x1: '6', y1: '6', x2: '18', y2: '18' })
+                          ),
+                      React.createElement('div', { className: 'text-left flex-1' },
+                        React.createElement('p', { className: 'font-medium' }, q.text),
+                        React.createElement('p', { className: 'text-gray-600' },
+                          'Votre réponse : ',
+                          React.createElement('span', { className: 'font-semibold' }, r.userAnswer || '—')
+                        ),
+                        !r.isCorrect && React.createElement('p', { className: 'text-red-600' }, 'Bonne réponse : ' + q.answer)
+                      )
+                    );
+                  }),
+
+                  React.createElement('button', {
+                    onClick: () => setView('student'),
+                    className: 'mt-6 bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700'
+                  }, 'Retour à mes devoirs')
+                )
+              )
+            )
+          )
         );
       }
 
-      // ————— GESTION DES DEVOIRS (ENSEIGNANT + ÉLÈVE) —————
-      if (currentView === 'assignments') {
-        return (
-          <Layout>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold text-gray-800">
-                {userRole === 'teacher' ? 'Gérer les devoirs' : 'Mes devoirs'}
-              </h1>
-              {userRole === 'teacher' && (
-                <button
-                  onClick={() => setShowAddForm(!showAddForm)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded flex items-center space-x-1"
-                >
-                  <IconPlus /><span>Ajouter</span>
-                </button>
-              )}
-            </div>
+      // === ENSEIGNANT ===
+      if (view === 'teacher') {
+        return React.createElement('div', { className: 'min-h-screen bg-gray-100 p-4' },
+          React.createElement('div', { className: 'max-w-6xl mx-auto' },
+            React.createElement('div', { className: 'flex justify-between items-center mb-6' },
+              React.createElement('h1', { className: 'text-2xl font-bold text-gray-800' }, 'Alpha Bac - Espace Enseignant'),
+              React.createElement('button', {
+                onClick: logout,
+                className: 'text-red-600 hover:underline flex items-center'
+              }, 'Déconnexion')
+            ),
 
-            {/* Formulaire d'ajout (enseignant) */}
-            {userRole === 'teacher' && showAddForm && (
-              <div className="bg-white p-6 rounded shadow mb-6">
-                <h3 className="font-bold mb-4">Nouveau devoir</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <input
-                    type="text"
-                    value={newAssignment.title}
-                    onChange={e => setNewAssignment({...newAssignment, title: e.target.value})}
-                    placeholder="Titre"
-                    className="border border-gray-300 rounded px-3 py-2"
-                  />
-                  <input
-                    type="text"
-                    value={newAssignment.subject}
-                    onChange={e => setNewAssignment({...newAssignment, subject: e.target.value})}
-                    placeholder="Matière"
-                    className="border border-gray-300 rounded px-3 py-2"
-                  />
-                </div>
-                <div className="mb-4">
-                  {newAssignment.questions.map((q, i) => (
-                    <div key={i} className="p-3 border rounded mb-3 bg-gray-50">
-                      <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium">Question {i + 1}</span>
-                        {newAssignment.questions.length > 1 && (
-                          <button onClick={() => removeQuestionField(i)} className="text-red-500"><IconTrash /></button>
-                        )}
-                      </div>
-                      <input
-                        type="text"
-                        value={q.question}
-                        onChange={e => updateQuestionField(i, 'question', e.target.value)}
-                        placeholder="Énoncé"
-                        className="w-full mb-2 border rounded px-2 py-1"
-                      />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <select
-                          value={q.type}
-                          onChange={e => updateQuestionField(i, 'type', e.target.value)}
-                          className="border rounded px-2 py-1"
-                        >
-                          <option value="text">Texte</option>
-                          <option value="boolean">Vrai/Faux</option>
-                        </select>
-                        {q.type === 'boolean' ? (
-                          <select
-                            value={q.correctAnswer}
-                            onChange={e => updateQuestionField(i, 'correctAnswer', e.target.value)}
-                            className="border rounded px-2 py-1"
-                          >
-                            <option value="">-- Réponse --</option>
-                            <option value="true">Vrai</option>
-                            <option value="false">Faux</option>
-                          </select>
-                        ) : (
-                          <input
-                            type="text"
-                            value={q.correctAnswer}
-                            onChange={e => updateQuestionField(i, 'correctAnswer', e.target.value)}
-                            placeholder="Réponse"
-                            className="border rounded px-2 py-1"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addQuestionField}
-                    className="text-blue-600 text-sm flex items-center space-x-1 mt-2"
-                  >
-                    <IconPlus /><span>Ajouter une question</span>
-                  </button>
-                </div>
-                <div className="flex space-x-2">
-                  <button onClick={handleCreateAssignment} className="bg-blue-600 text-white px-4 py-2 rounded">Créer</button>
-                  <button onClick={() => setShowAddForm(false)} className="border border-gray-300 px-4 py-2 rounded">Annuler</button>
-                </div>
-              </div>
-            )}
+            React.createElement('button', {
+              onClick: () => setShowForm(!showForm),
+              className: 'mb-6 bg-blue-600 text-white px-4 py-2 rounded flex items-center'
+            }, '+ Ajouter un devoir'),
 
-            {/* Liste des devoirs */}
-            {assignments.length === 0 ? (
-              <p className="text-gray-500">Aucun devoir.</p>
-            ) : (
-              <div className="space-y-4">
-                {assignments.map(a => (
-                  <div key={a.id} className="bg-white p-5 rounded shadow flex justify-between items-center">
-                    <div>
-                      <h3 className="font-bold text-gray-800">{a.title}</h3>
-                      <p className="text-gray-600 text-sm">{a.subject} • {a.questions.length} questions</p>
-                      <p className="text-xs text-gray-500">Créé le {a.createdAt}</p>
-                    </div>
-                    <div className="flex space-x-2">
-                      {userRole === 'student' ? (
-                        <button
-                          onClick={() => startAssignment(a)}
-                          className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm flex items-center"
-                        >
-                          <IconPlay className="w-4 h-4 mr-1" /> Commencer
-                        </button>
-                      ) : (
-                        <>
-                          <span className={`px-3 py-1 rounded-full text-xs ${
-                            a.isGraded ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {a.isGraded ? 'Corrigé' : 'Non corrigé'}
-                          </span>
-                          <button
-                            onClick={() => handleDeleteAssignment(a.id)}
-                            className="text-red-600 hover:text-red-800"
-                            title="Supprimer"
-                          >
-                            <IconTrash className="w-5 h-5" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Layout>
+            // Formulaire
+            showForm && React.createElement('div', { className: 'bg-white p-6 rounded shadow mb-8' },
+              React.createElement('h3', { className: 'font-bold mb-4' }, 'Nouveau devoir'),
+              React.createElement('input', {
+                type: 'text',
+                placeholder: 'Titre du devoir',
+                value: formTitle,
+                onChange: (e) => setFormTitle(e.target.value),
+                className: 'w-full p-2 border border-gray-300 rounded mb-3'
+              }),
+              React.createElement('input', {
+                type: 'text',
+                placeholder: 'Matière',
+                value: formSubject,
+                onChange: (e) => setFormSubject(e.target.value),
+                className: 'w-full p-2 border border-gray-300 rounded mb-4'
+              }),
+
+              questions.map((q, i) =>
+                React.createElement('div', { key: i, className: 'border rounded p-3 mb-3 bg-gray-50' },
+                  React.createElement('div', { className: 'flex justify-between items-center mb-2' },
+                    React.createElement('span', { className: 'text-sm font-medium' }, 'Question ' + (i + 1)),
+                    questions.length > 1 && React.createElement('button', {
+                      onClick: () => removeQuestion(i),
+                      className: 'text-red-500 text-sm'
+                    }, 'Supprimer')
+                  ),
+                  React.createElement('input', {
+                    type: 'text',
+                    placeholder: 'Énoncé de la question',
+                    value: q.text,
+                    onChange: (e) => updateQuestionText(i, e.target.value),
+                    className: 'w-full p-2 border border-gray-300 rounded mb-2'
+                  }),
+                  React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-2' },
+                    React.createElement('select', {
+                      value: q.type,
+                      onChange: (e) => updateQuestionType(i, e.target.value),
+                      className: 'p-2 border border-gray-300 rounded'
+                    },
+                      React.createElement('option', { value: 'text' }, 'Texte'),
+                      React.createElement('option', { value: 'boolean' }, 'Vrai/Faux')
+                    ),
+                    q.type === 'boolean'
+                      ? React.createElement('select', {
+                          value: q.answer,
+                          onChange: (e) => updateQuestionAnswer(i, e.target.value),
+                          className: 'p-2 border border-gray-300 rounded'
+                        },
+                          React.createElement('option', { value: 'true' }, 'Vrai'),
+                          React.createElement('option', { value: 'false' }, 'Faux')
+                        )
+                      : React.createElement('input', {
+                          type: 'text',
+                          placeholder: 'Réponse correcte',
+                          value: q.answer,
+                          onChange: (e) => updateQuestionAnswer(i, e.target.value),
+                          className: 'p-2 border border-gray-300 rounded'
+                        })
+                  )
+                )
+              ),
+
+              React.createElement('button', {
+                onClick: addQuestion,
+                className: 'text-blue-600 mb-4 flex items-center'
+              }, '+ Ajouter une question'),
+
+              React.createElement('div', { className: 'flex space-x-2' },
+                React.createElement('button', {
+                  onClick: saveAssignment,
+                  className: 'bg-green-600 text-white px-4 py-2 rounded'
+                }, 'Enregistrer le devoir'),
+                React.createElement('button', {
+                  onClick: () => { setShowForm(false); resetForm(); },
+                  className: 'bg-gray-500 text-white px-4 py-2 rounded'
+                }, 'Annuler')
+              )
+            ),
+
+            // Liste des devoirs
+            React.createElement('h2', { className: 'text-xl font-bold mb-4' }, 'Devoirs existants'),
+            assignments.length === 0
+              ? React.createElement('p', null, 'Aucun devoir.')
+              : React.createElement('div', { className: 'space-y-4' },
+                  assignments.map(quiz =>
+                    React.createElement('div', { key: quiz.id, className: 'bg-white p-4 rounded shadow flex justify-between items-center' },
+                      React.createElement('div', null,
+                        React.createElement('h3', { className: 'font-bold' }, quiz.title),
+                        React.createElement('p', { className: 'text-gray-600 text-sm' }, quiz.subject + ' • ' + quiz.questions.length + ' questions'),
+                        React.createElement('p', { className: 'text-xs text-gray-500 mt-1' }, 'Créé le ' + quiz.date)
+                      ),
+                      React.createElement('div', { className: 'flex space-x-3' },
+                        React.createElement('span', {
+                          className: `px-3 py-1 rounded-full text-xs ${
+                            quiz.graded ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`
+                        }, quiz.graded ? 'Corrigé' : 'Non corrigé'),
+                        React.createElement('button', {
+                          onClick: () => deleteAssignment(quiz.id),
+                          className: 'text-red-600 hover:text-red-800'
+                        }, 'Supprimer')
+                      )
+                    )
+                  )
+                )
+          )
         );
       }
 
       return null;
-    };
+    }
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    root.render(React.createElement(App));
   </script>
 </body>
 </html>
