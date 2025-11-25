@@ -4,49 +4,51 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Alpha Bac - Plateforme éducative</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            moodle: {
-              blue: '#007bff',
-              dark: '#313a46',
-              light: '#f5f6f8'
-            }
+            moodle: { blue: '#007bff', dark: '#313a46', light: '#f5f6f8' }
           }
         }
       }
     };
   </script>
-  <!-- React -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script type="module">
-    import { BookOpen, FileText, Users, GraduationCap, Plus, LogOut, Play, Clock, Award, CheckCircle, XCircle, Trash2, Menu, X, Shield, Key } from 'https://cdn.skypack.dev/lucide-react';
-    window.LucideIcons = { BookOpen, FileText, Users, GraduationCap, Plus, LogOut, Play, Clock, Award, CheckCircle, XCircle, Trash2, Menu, X, Shield, Key };
-  </script>
   <style>
     body { margin: 0; font-family: 'Segoe UI', system-ui; background-color: #f5f6f8; }
-    .moodle-bg { background-color: #f5f6f8; }
     .sidebar-bg { background-color: #313a46; color: white; }
+    .icon { width: 1.25rem; height: 1.25rem; stroke: currentColor; stroke-width: 2; fill: none; }
   </style>
 </head>
-<body class="moodle-bg">
+<body>
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect } = React;
-    const {
-      BookOpen, FileText, Users, GraduationCap, Plus, LogOut,
-      Play, Clock, Award, CheckCircle, XCircle, Trash2, Menu, X, Shield, Key
-    } = window.LucideIcons;
 
-    // 🔑 Mot de passe de l'administrateur (à modifier si nécessaire)
     const ADMIN_PASSWORD = "admin123";
+
+    // ————— Icônes SVG (rapides, sans réseau) —————
+    const IconBook = () => <svg className="icon" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H19a1 1 0 011 1v18a1 1 0 01-1 1H6.5a2.5 2.5 0 010-5H20" /></svg>;
+    const IconFile = () => <svg className="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" /><path d="M14 2v6h6" /></svg>;
+    const IconUsers = () => <svg className="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><circle cx="17" cy="7" r="4" /></svg>;
+    const IconGraduation = () => <svg className="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><path d="M12 11L8 7l4-4 4 4-4 4z" /></svg>;
+    const IconPlay = () => <svg className="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" /></svg>;
+    const IconClock = () => <svg className="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
+    const IconAward = () => <svg className="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" /></svg>;
+    const IconCheck = () => <svg className="icon text-green-600" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>;
+    const IconX = () => <svg className="icon text-red-600" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>;
+    const IconShield = () => <svg className="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>;
+    const IconKey = () => <svg className="icon" viewBox="0 0 24 24"><path d="M19 11H5a2 2 0 00-2 2v6a2 2 0 002 2h14a2 2 0 002-2v-6a2 2 0 00-2-2z" /><path d="M10 16v-3a1 1 0 011-1h2a1 1 0 011 1v3" /><circle cx="12" cy="8" r="2" /></svg>;
+    const IconMenu = () => <svg className="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>;
+    const IconLogout = () => <svg className="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>;
+    const IconPlus = () => <svg className="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>;
+    const IconTrash = () => <svg className="icon text-red-600" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>;
 
     const App = () => {
       const [currentView, setCurrentView] = useState('login');
@@ -55,7 +57,8 @@
       const [password, setPassword] = useState('');
       const [error, setError] = useState('');
 
-      const [assignments, setAssignments] = useState([
+      // ✅ Ajout de localStorage pour persister les devoirs
+      const initialAssignments = JSON.parse(localStorage.getItem('assignments')) || [
         {
           id: 1,
           title: 'Quiz d\'algèbre',
@@ -67,13 +70,13 @@
           isGraded: false,
           createdAt: '2025-11-25'
         }
-      ]);
-      
+      ];
+
+      const [assignments, setAssignments] = useState(initialAssignments);
       const [studentAnswers, setStudentAnswers] = useState({});
       const [currentAssignment, setCurrentAssignment] = useState(null);
       const [gradeResults, setGradeResults] = useState(null);
-      const [timeLeft, setTimeLeft] = useState(0);
-      const [completedAssignments, setCompletedAssignments] = useState([]);
+      const [timeLeft, setTimeLeft] = useState(600);
       const [showAddForm, setShowAddForm] = useState(false);
       const [newAssignment, setNewAssignment] = useState({
         title: '',
@@ -81,7 +84,12 @@
         questions: [{ question: '', correctAnswer: '', type: 'text' }]
       });
 
-      // --- AUTHENTIFICATION ---
+      // Sauvegarder dans localStorage à chaque changement
+      useEffect(() => {
+        localStorage.setItem('assignments', JSON.stringify(assignments));
+      }, [assignments]);
+
+      // ————— FONCTIONS COMMUNES —————
       const handleStudentLogin = () => {
         setUserRole('student');
         setCurrentView('dashboard');
@@ -108,7 +116,6 @@
         setError('');
       };
 
-      // --- FONCTIONS DEVOIRS ---
       const startAssignment = (assignment) => {
         setCurrentAssignment(assignment);
         setStudentAnswers({});
@@ -123,27 +130,18 @@
       const gradeAssignment = () => {
         if (!currentAssignment) return;
         const results = currentAssignment.questions.map(q => {
-          const ans = studentAnswers[q.id] || '';
-          const isCorrect = ans.toString().toLowerCase() === q.correctAnswer.toString().toLowerCase();
-          return { questionId: q.id, isCorrect, studentAnswer: ans };
+          const userAns = (studentAnswers[q.id] || '').toString().toLowerCase().trim();
+          const correct = q.correctAnswer.toString().toLowerCase().trim();
+          return { questionId: q.id, isCorrect: userAns === correct, studentAnswer: studentAnswers[q.id] || '' };
         });
         const score = results.filter(r => r.isCorrect).length;
         const total = results.length;
         const percentage = Math.round((score / total) * 100);
-        const result = {
-          assignmentId: currentAssignment.id,
-          assignmentTitle: currentAssignment.title,
-          score,
-          total,
-          percentage,
-          results,
-          completedAt: new Date().toISOString()
-        };
         setGradeResults({ results, score, total, percentage });
-        setCompletedAssignments(prev => [...prev, result]);
-        setAssignments(prev =>
-          prev.map(a => a.id === currentAssignment.id ? { ...a, isGraded: true } : a)
-        );
+        // Marquer comme corrigé dans la liste
+        setAssignments(prev => prev.map(a =>
+          a.id === currentAssignment.id ? { ...a, isGraded: true } : a
+        ));
       };
 
       useEffect(() => {
@@ -160,33 +158,35 @@
         return `${m}:${sec.toString().padStart(2, '0')}`;
       };
 
-      // --- FORMULAIRE ENSEIGNANT ---
-      const addQuestion = () => setNewAssignment(p => ({
-        ...p,
-        questions: [...p.questions, { question: '', correctAnswer: '', type: 'text' }]
-      }));
+      // ————— GESTION ENSEIGNANT —————
+      const addQuestionField = () => {
+        setNewAssignment(prev => ({
+          ...prev,
+          questions: [...prev.questions, { question: '', correctAnswer: '', type: 'text' }]
+        }));
+      };
 
-      const removeQuestion = (i) => {
+      const removeQuestionField = (index) => {
         if (newAssignment.questions.length > 1) {
-          const q = [...newAssignment.questions];
-          q.splice(i, 1);
-          setNewAssignment(p => ({ ...p, questions: q }));
+          const updated = [...newAssignment.questions];
+          updated.splice(index, 1);
+          setNewAssignment({ ...newAssignment, questions: updated });
         }
       };
 
-      const updateQuestion = (i, field, val) => {
-        const q = [...newAssignment.questions];
-        q[i][field] = val;
-        setNewAssignment(p => ({ ...p, questions: q }));
+      const updateQuestionField = (index, field, value) => {
+        const updated = [...newAssignment.questions];
+        updated[index][field] = value;
+        setNewAssignment({ ...newAssignment, questions: updated });
       };
 
-      const createAssignment = () => {
+      const handleCreateAssignment = () => {
         if (!newAssignment.title.trim() || !newAssignment.subject.trim()) {
-          alert('Titre et matière requis.');
+          alert('Veuillez remplir le titre et la matière.');
           return;
         }
         if (newAssignment.questions.some(q => !q.question.trim() || !q.correctAnswer.trim())) {
-          alert('Chaque question doit avoir un énoncé et une réponse.');
+          alert('Toutes les questions doivent avoir un énoncé et une réponse correcte.');
           return;
         }
         const assignment = {
@@ -197,19 +197,177 @@
           isGraded: false,
           createdAt: new Date().toISOString().split('T')[0]
         };
-        setAssignments(p => [...p, assignment]);
+        setAssignments(prev => [...prev, assignment]);
         setNewAssignment({ title: '', subject: '', questions: [{ question: '', correctAnswer: '', type: 'text' }] });
         setShowAddForm(false);
         alert('Devoir ajouté avec succès !');
       };
 
-      // --- COMPOSANTS UI ---
-      const Sidebar = ({ role }) => (
+      const handleDeleteAssignment = (id) => {
+        if (window.confirm('Êtes-vous sûr de vouloir supprimer ce devoir ?')) {
+          setAssignments(prev => prev.filter(a => a.id !== id));
+        }
+      };
+
+      // ————— VUE LOGIN —————
+      if (currentView === 'login') {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-8">
+              <div className="text-center mb-8">
+                <div className="mx-auto bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white">
+                  <IconBook />
+                </div>
+                <h1 className="text-2xl font-bold text-gray-800">Alpha Bac</h1>
+                <p className="text-gray-600">Plateforme éducative</p>
+              </div>
+              <div className="space-y-5">
+                <button
+                  onClick={handleStudentLogin}
+                  className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 flex items-center justify-center space-x-2"
+                >
+                  <IconUsers /><span>Accès Étudiant</span>
+                </button>
+                <div className="border-t pt-5">
+                  <p className="text-center text-gray-700 mb-3">Accès Enseignant</p>
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"><IconKey /></span>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        placeholder="Mot de passe"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                    <button
+                      onClick={handleTeacherLogin}
+                      className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 flex items-center justify-center space-x-2"
+                    >
+                      <IconShield /><span>Se connecter</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ————— VUE DEVOIR (ÉLÈVE) —————
+      if (currentAssignment) {
+        return (
+          <div className="min-h-screen bg-gray-100 p-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-white rounded-lg shadow p-6 mb-6">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-800">{currentAssignment.title}</h1>
+                    <p className="text-gray-600">{currentAssignment.subject}</p>
+                  </div>
+                  <div className="bg-red-100 text-red-800 px-3 py-1 rounded-full flex items-center space-x-1">
+                    <IconClock /><span>{formatTime(timeLeft)}</span>
+                  </div>
+                </div>
+
+                {!gradeResults ? (
+                  <div className="space-y-6">
+                    {currentAssignment.questions.map((q, i) => (
+                      <div key={q.id} className="p-4 border border-gray-200 rounded bg-gray-50">
+                        <p className="font-medium mb-3"><span className="text-blue-600 font-bold">{i + 1}.</span> {q.question}</p>
+                        {q.type === 'boolean' ? (
+                          <div className="space-y-2">
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`q${q.id}`}
+                                value="true"
+                                checked={studentAnswers[q.id] === 'true'}
+                                onChange={e => handleAnswerChange(q.id, e.target.value)}
+                                className="w-4 h-4 text-blue-600"
+                              />
+                              <span>Vrai</span>
+                            </label>
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`q${q.id}`}
+                                value="false"
+                                checked={studentAnswers[q.id] === 'false'}
+                                onChange={e => handleAnswerChange(q.id, e.target.value)}
+                                className="w-4 h-4 text-blue-600"
+                              />
+                              <span>Faux</span>
+                            </label>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            value={studentAnswers[q.id] || ''}
+                            onChange={e => handleAnswerChange(q.id, e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                            placeholder="Votre réponse..."
+                          />
+                        )}
+                      </div>
+                    ))}
+                    <div className="text-center mt-6">
+                      <button
+                        onClick={gradeAssignment}
+                        disabled={timeLeft <= 0}
+                        className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        Soumettre et Corriger
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="inline-block bg-green-100 rounded-full p-4 mb-6">
+                      <IconAward className="text-green-600 w-12 h-12 mx-auto" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-2">Résultats</h2>
+                    <p className="text-4xl font-bold text-green-600 mb-2">{gradeResults.score} / {gradeResults.total}</p>
+                    <p className="text-xl text-gray-600">{gradeResults.percentage}% de réussite</p>
+
+                    <div className="mt-8 space-y-4 text-left">
+                      {gradeResults.results.map(r => {
+                        const q = currentAssignment.questions.find(x => x.id === r.questionId);
+                        return (
+                          <div key={r.questionId} className="flex items-start space-x-3 p-3 bg-white border rounded">
+                            {r.isCorrect ? <IconCheck /> : <IconX />}
+                            <div>
+                              <p className="font-medium">{q.question}</p>
+                              <p className="text-gray-600">Votre réponse: <span className="font-semibold">{r.studentAnswer || '—'}</span></p>
+                              {!r.isCorrect && <p className="text-red-600">Bonne réponse: {q.correctAnswer}</p>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentAssignment(null)}
+                      className="mt-8 bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700"
+                    >
+                      Retour
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ————— TABLEAU DE BORD —————
+      const Sidebar = () => (
         <div className={`fixed inset-y-0 left-0 z-30 w-64 sidebar-bg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out`}>
           <div className="p-5 border-b border-gray-700">
             <h2 className="text-xl font-bold flex items-center space-x-2">
-              <BookOpen className="w-6 h-6" />
-              <span>Alpha Bac</span>
+              <IconBook /><span>Alpha Bac</span>
             </h2>
           </div>
           <nav className="mt-6 px-4">
@@ -219,8 +377,7 @@
                   onClick={() => { setCurrentView('dashboard'); setSidebarOpen(false); }}
                   className="w-full text-left px-4 py-2 rounded hover:bg-gray-700 flex items-center space-x-3"
                 >
-                  <GraduationCap className="w-5 h-5" />
-                  <span>Tableau de bord</span>
+                  <IconGraduation /><span>Tableau de bord</span>
                 </button>
               </li>
               <li>
@@ -228,8 +385,7 @@
                   onClick={() => { setCurrentView('assignments'); setSidebarOpen(false); }}
                   className="w-full text-left px-4 py-2 rounded hover:bg-gray-700 flex items-center space-x-3"
                 >
-                  <FileText className="w-5 h-5" />
-                  <span>{role === 'teacher' ? 'Gérer les devoirs' : 'Mes devoirs'}</span>
+                  <IconFile /><span>{userRole === 'teacher' ? 'Gérer les devoirs' : 'Mes devoirs'}</span>
                 </button>
               </li>
             </ul>
@@ -239,8 +395,7 @@
               onClick={handleLogout}
               className="w-full flex items-center justify-center space-x-2 text-red-300 hover:text-red-100 py-2"
             >
-              <LogOut className="w-5 h-5" />
-              <span>Déconnexion</span>
+              <IconLogout /><span>Déconnexion</span>
             </button>
           </div>
         </div>
@@ -248,12 +403,7 @@
 
       const Header = () => (
         <header className="bg-white shadow-sm h-16 flex items-center justify-between px-4 md:px-6">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="md:hidden text-gray-600"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+          <button onClick={() => setSidebarOpen(true)} className="md:hidden text-gray-600"><IconMenu /></button>
           <div className="flex items-center space-x-3">
             <div className={`w-3 h-3 rounded-full ${userRole === 'teacher' ? 'bg-red-500' : 'bg-green-500'}`}></div>
             <span className="font-medium text-gray-800 capitalize">
@@ -265,202 +415,33 @@
 
       const Layout = ({ children }) => (
         <div className="flex min-h-screen">
-          <Sidebar role={userRole} />
+          <Sidebar />
           <div className="flex flex-col flex-1 md:ml-64">
             <Header />
             <main className="flex-1 p-4 md:p-6">{children}</main>
           </div>
-          {sidebarOpen && (
-            <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-              onClick={() => setSidebarOpen(false)}
-            ></div>
-          )}
+          {sidebarOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" onClick={() => setSidebarOpen(false)}></div>}
         </div>
       );
 
-      // --- VUE LOGIN ---
-      if (currentView === 'login') {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-8">
-              <div className="text-center mb-8">
-                <div className="mx-auto bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                  <BookOpen className="w-8 h-8 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-800">Alpha Bac</h1>
-                <p className="text-gray-600">Plateforme éducative</p>
-              </div>
-
-              <div className="space-y-5">
-                {/* Étudiant */}
-                <button
-                  onClick={handleStudentLogin}
-                  className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 flex items-center justify-center space-x-2"
-                >
-                  <Users className="w-5 h-5" />
-                  <span>Accès Étudiant</span>
-                </button>
-
-                {/* Enseignant */}
-                <div className="border-t pt-5">
-                  <p className="text-center text-gray-700 mb-3">Accès Enseignant</p>
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Mot de passe"
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-                    <button
-                      onClick={handleTeacherLogin}
-                      className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 flex items-center justify-center space-x-2"
-                    >
-                      <Shield className="w-5 h-5" />
-                      <span>Se connecter</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      // --- VUE DEVOIR (ÉTUDIANT) ---
-      if (currentAssignment) {
-        return (
-          <Layout>
-            <div className="max-w-3xl mx-auto w-full">
-              <div className="bg-white rounded-lg shadow p-6 mb-6">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-800">{currentAssignment.title}</h1>
-                    <p className="text-gray-600">{currentAssignment.subject}</p>
-                  </div>
-                  <div className="bg-red-100 text-red-800 px-3 py-1 rounded-full flex items-center space-x-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{formatTime(timeLeft)}</span>
-                  </div>
-                </div>
-
-                {!gradeResults ? (
-                  <div className="space-y-6">
-                    {currentAssignment.questions.map((q, i) => (
-                      <div key={q.id} className="p-4 border border-gray-200 rounded">
-                        <p className="font-medium mb-3"><span className="text-blue-600 font-bold">{i + 1}.</span> {q.question}</p>
-                        {q.type === 'boolean' ? (
-                          <div className="space-y-2">
-                            {['true', 'false'].map(val => (
-                              <label key={val} className="flex items-center space-x-2">
-                                <input
-                                  type="radio"
-                                  name={`q${q.id}`}
-                                  value={val}
-                                  onChange={e => handleAnswerChange(q.id, e.target.value)}
-                                  className="text-blue-600"
-                                />
-                                <span>{val === 'true' ? 'Vrai' : 'Faux'}</span>
-                              </label>
-                            ))}
-                          </div>
-                        ) : (
-                          <input
-                            type="text"
-                            value={studentAnswers[q.id] || ''}
-                            onChange={e => handleAnswerChange(q.id, e.target.value)}
-                            className="w-full border border-gray-300 rounded px-3 py-2"
-                            placeholder="Votre réponse"
-                          />
-                        )}
-                      </div>
-                    ))}
-                    <div className="text-center mt-6">
-                      <button
-                        onClick={gradeAssignment}
-                        disabled={timeLeft === 0}
-                        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        Soumettre
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <div className="inline-block bg-green-100 rounded-full p-4 mb-6">
-                      <Award className="w-12 h-12 text-green-600 mx-auto" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-2">Résultats</h2>
-                    <p className="text-4xl font-bold text-green-600 mb-4">
-                      {gradeResults.score} / {gradeResults.total}
-                    </p>
-                    <p className="text-gray-700">{gradeResults.percentage}% de réussite</p>
-
-                    <div className="mt-8 space-y-4 text-left">
-                      {gradeResults.results.map(r => {
-                        const q = currentAssignment.questions.find(x => x.id === r.questionId);
-                        return (
-                          <div key={r.questionId} className="flex items-start space-x-3 p-3 bg-gray-50 rounded">
-                            {r.isCorrect ? (
-                              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                            ) : (
-                              <XCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                            )}
-                            <div>
-                              <p className="font-medium">{q.question}</p>
-                              <p><span className="text-gray-600">Votre réponse :</span> <span className="font-semibold">{r.studentAnswer || '—'}</span></p>
-                              {!r.isCorrect && <p className="text-red-600">Bonne réponse : {q.correctAnswer}</p>}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      onClick={() => setCurrentAssignment(null)}
-                      className="mt-8 bg-gray-600 text-white px-5 py-2 rounded hover:bg-gray-700"
-                    >
-                      Retour aux devoirs
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Layout>
-        );
-      }
-
-      // --- TABLEAU DE BORD ---
       if (currentView === 'dashboard') {
         return (
           <Layout>
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
-              {userRole === 'teacher' ? 'Tableau de bord - Enseignant' : 'Tableau de bord - Étudiant'}
+              {userRole === 'teacher' ? 'Enseignant' : 'Étudiant'} - Alpha Bac
             </h1>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded shadow">
-                <div className="text-blue-600 mb-2"><FileText className="w-8 h-8" /></div>
+                <IconFile className="text-blue-600 mb-2" />
                 <h3 className="font-bold text-gray-800">{assignments.length}</h3>
-                <p className="text-gray-600">Devoirs disponibles</p>
+                <p className="text-gray-600">Devoirs</p>
               </div>
-              {userRole === 'student' && (
-                <div className="bg-white p-6 rounded shadow">
-                  <div className="text-green-600 mb-2"><Award className="w-8 h-8" /></div>
-                  <h3 className="font-bold text-gray-800">{completedAssignments.length}</h3>
-                  <p className="text-gray-600">Devoirs terminés</p>
-                </div>
-              )}
             </div>
           </Layout>
         );
       }
 
-      // --- GESTION DES DEVOIRS ---
+      // ————— GESTION DES DEVOIRS (ENSEIGNANT + ÉLÈVE) —————
       if (currentView === 'assignments') {
         return (
           <Layout>
@@ -473,13 +454,12 @@
                   onClick={() => setShowAddForm(!showAddForm)}
                   className="bg-blue-600 text-white px-4 py-2 rounded flex items-center space-x-1"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>Ajouter</span>
+                  <IconPlus /><span>Ajouter</span>
                 </button>
               )}
             </div>
 
-            {/* Formulaire enseignant */}
+            {/* Formulaire d'ajout (enseignant) */}
             {userRole === 'teacher' && showAddForm && (
               <div className="bg-white p-6 rounded shadow mb-6">
                 <h3 className="font-bold mb-4">Nouveau devoir</h3>
@@ -487,41 +467,38 @@
                   <input
                     type="text"
                     value={newAssignment.title}
-                    onChange={e => setNewAssignment(p => ({ ...p, title: e.target.value }))}
-                    placeholder="Titre du devoir"
+                    onChange={e => setNewAssignment({...newAssignment, title: e.target.value})}
+                    placeholder="Titre"
                     className="border border-gray-300 rounded px-3 py-2"
                   />
                   <input
                     type="text"
                     value={newAssignment.subject}
-                    onChange={e => setNewAssignment(p => ({ ...p, subject: e.target.value }))}
+                    onChange={e => setNewAssignment({...newAssignment, subject: e.target.value})}
                     placeholder="Matière"
                     className="border border-gray-300 rounded px-3 py-2"
                   />
                 </div>
-
                 <div className="mb-4">
                   {newAssignment.questions.map((q, i) => (
                     <div key={i} className="p-3 border rounded mb-3 bg-gray-50">
                       <div className="flex justify-between mb-2">
                         <span className="text-sm font-medium">Question {i + 1}</span>
                         {newAssignment.questions.length > 1 && (
-                          <button onClick={() => removeQuestion(i)} className="text-red-500">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <button onClick={() => removeQuestionField(i)} className="text-red-500"><IconTrash /></button>
                         )}
                       </div>
                       <input
                         type="text"
                         value={q.question}
-                        onChange={e => updateQuestion(i, 'question', e.target.value)}
+                        onChange={e => updateQuestionField(i, 'question', e.target.value)}
                         placeholder="Énoncé"
                         className="w-full mb-2 border rounded px-2 py-1"
                       />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <select
                           value={q.type}
-                          onChange={e => updateQuestion(i, 'type', e.target.value)}
+                          onChange={e => updateQuestionField(i, 'type', e.target.value)}
                           className="border rounded px-2 py-1"
                         >
                           <option value="text">Texte</option>
@@ -530,7 +507,7 @@
                         {q.type === 'boolean' ? (
                           <select
                             value={q.correctAnswer}
-                            onChange={e => updateQuestion(i, 'correctAnswer', e.target.value)}
+                            onChange={e => updateQuestionField(i, 'correctAnswer', e.target.value)}
                             className="border rounded px-2 py-1"
                           >
                             <option value="">-- Réponse --</option>
@@ -541,8 +518,8 @@
                           <input
                             type="text"
                             value={q.correctAnswer}
-                            onChange={e => updateQuestion(i, 'correctAnswer', e.target.value)}
-                            placeholder="Réponse correcte"
+                            onChange={e => updateQuestionField(i, 'correctAnswer', e.target.value)}
+                            placeholder="Réponse"
                             className="border rounded px-2 py-1"
                           />
                         )}
@@ -551,27 +528,22 @@
                   ))}
                   <button
                     type="button"
-                    onClick={addQuestion}
-                    className="text-blue-600 text-sm flex items-center space-x-1"
+                    onClick={addQuestionField}
+                    className="text-blue-600 text-sm flex items-center space-x-1 mt-2"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span>Ajouter une question</span>
+                    <IconPlus /><span>Ajouter une question</span>
                   </button>
                 </div>
                 <div className="flex space-x-2">
-                  <button onClick={createAssignment} className="bg-blue-600 text-white px-4 py-2 rounded">
-                    Enregistrer
-                  </button>
-                  <button onClick={() => setShowAddForm(false)} className="border border-gray-300 px-4 py-2 rounded">
-                    Annuler
-                  </button>
+                  <button onClick={handleCreateAssignment} className="bg-blue-600 text-white px-4 py-2 rounded">Créer</button>
+                  <button onClick={() => setShowAddForm(false)} className="border border-gray-300 px-4 py-2 rounded">Annuler</button>
                 </div>
               </div>
             )}
 
             {/* Liste des devoirs */}
             {assignments.length === 0 ? (
-              <p className="text-gray-500">Aucun devoir pour le moment.</p>
+              <p className="text-gray-500">Aucun devoir.</p>
             ) : (
               <div className="space-y-4">
                 {assignments.map(a => (
@@ -579,23 +551,33 @@
                     <div>
                       <h3 className="font-bold text-gray-800">{a.title}</h3>
                       <p className="text-gray-600 text-sm">{a.subject} • {a.questions.length} questions</p>
-                      <p className="text-xs text-gray-500 mt-1">Créé le {a.createdAt}</p>
+                      <p className="text-xs text-gray-500">Créé le {a.createdAt}</p>
                     </div>
-                    {userRole === 'student' ? (
-                      <button
-                        onClick={() => startAssignment(a)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded flex items-center space-x-1"
-                      >
-                        <Play className="w-4 h-4" />
-                        <span>Commencer</span>
-                      </button>
-                    ) : (
-                      <span className={`px-3 py-1 rounded-full text-xs ${
-                        a.isGraded ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {a.isGraded ? 'Corrigé' : 'Non corrigé'}
-                      </span>
-                    )}
+                    <div className="flex space-x-2">
+                      {userRole === 'student' ? (
+                        <button
+                          onClick={() => startAssignment(a)}
+                          className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm flex items-center"
+                        >
+                          <IconPlay className="w-4 h-4 mr-1" /> Commencer
+                        </button>
+                      ) : (
+                        <>
+                          <span className={`px-3 py-1 rounded-full text-xs ${
+                            a.isGraded ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {a.isGraded ? 'Corrigé' : 'Non corrigé'}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteAssignment(a.id)}
+                            className="text-red-600 hover:text-red-800"
+                            title="Supprimer"
+                          >
+                            <IconTrash className="w-5 h-5" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
